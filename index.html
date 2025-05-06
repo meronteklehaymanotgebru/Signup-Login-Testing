@@ -35,5 +35,9 @@
       }
     }
   </script>
+  <script type="module">
+    import { login } from './login.js';
+    document.querySelector('form').addEventListener('submit', login);
+  </script>
 </body>
 </html>

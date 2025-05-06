@@ -2,34 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Signup</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Sign Up</title>
 </head>
 <body>
-  <h2>Signup</h2>
-  <form onsubmit="signup(event)">
+  <h2>Sign Up</h2>
+  <form>
     <input type="email" id="email" placeholder="Email" required><br>
     <input type="password" id="password" placeholder="Password" required><br>
-    <button type="submit">Signup</button>
+    <button type="submit">Sign Up</button>
   </form>
   <p>Already have an account? <a href="login.html">Login</a></p>
-
-  <script>
-    async function signup(e) {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      const res = await fetch('/api/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await res.json();
-      alert(data.message);
-      if (res.ok) window.location.href = 'login.html';
-    }
+  <script type="module">
+    import { signup } from './signup.js';
+    document.querySelector('form').addEventListener('submit', signup);
   </script>
 </body>
 </html>

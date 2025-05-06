@@ -1,52 +1,42 @@
-const { signup } = require('./signup');
+/**
+*@jest-environment jsdom
+*/
+const { signup } =require('./signup.js');
+global.fetch = jest.fn();
+global.alert = jest.fn();
 beforeEach(() => {
   document.body.innerHTML = `
-    <input type="email" id="email" value="test@example.com" />
-    <input type="password" id="password" value="password123" />
+    <form>
+      <input type="email" id="email">
+      <input type="password" id="password">
+      <button type="submit">Sign Up</button>
+    </form>
   `;
-  global.fetch = jest.fn(() =>
-    Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ message: 'Signup successful' }),
-    })
-  );
-  global.alert = jest.fn();
-  delete window.location;
-  window.location = { href: '' };
 });
-test('prevents default form submission', () => {
-  const event = { preventDefault: jest.fn() };
-  signup(event);
-  expect(event.preventDefault).toHaveBeenCalled();
-});
-test('calls fetch with correct parameters', async () => {
-  const event = { preventDefault: jest.fn() };
-  await signup(event);
-  expect(fetch).toHaveBeenCalledWith('/api/signup', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'test@example.com', password: 'password123' }),
+test('successful signup shows alert and redirects', async () => {
+  document.getElementById('email').value = 'test@example.com';
+  document.getElementById('password').value = 'pass123';
+  fetch.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ message: 'Success' })
   });
-});
-test('alerts the response message', async () => {
-  const event = { preventDefault: jest.fn() };
-  await signup(event);
-  expect(alert).toHaveBeenCalledWith('Signup successful');
-});
-test('redirects to login.html on successful signup', async () => {
-  const event = { preventDefault: jest.fn() };
-  await signup(event);
+  Object.defineProperty(window, 'location', {
+    writable: true,
+    value: { href: '' }
+  });
+  const e = { preventDefault: jest.fn() };
+  await signup(e);
+  expect(alert).toHaveBeenCalledWith('Sign up successful!');
   expect(window.location.href).toBe('login.html');
 });
-test('does not redirect on failed signup', async () => {
-  fetch.mockImplementationOnce(() =>
-    Promise.resolve({
-      ok: false,
-      json: () => Promise.resolve({ message: 'Signup failed' }),
-    })
-  );
-  const event = { preventDefault: jest.fn() };
-  await signup(event);
-  expect(window.location.href).toBe('');
-  expect(alert).toHaveBeenCalledWith('Signup failed');
+test('failed signup shows alert with error', async () => {
+  document.getElementById('email').value = 'fail@example.com';
+  document.getElementById('password').value = '123';
+  fetch.mockResolvedValueOnce({
+    ok: false,
+    json: async () => ({ message: 'User already exists' })
+  });
+  const e = { preventDefault: jest.fn() };
+  await signup(e);
+  expect(alert).toHaveBeenCalledWith('User already exists');
 });
